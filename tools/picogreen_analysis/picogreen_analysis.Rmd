@@ -1,0 +1,83 @@
+---
+title: "picogreen_analysis"
+author: "Vincent Wu"
+date: "8/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+```{r load pkgs}
+library(ggplot2)
+```
+
+## Settings
+```{r}
+# input file path for csv file
+# example "../test_dir/picogreen_file.csv"
+abs_csv <- ""
+
+# output file with calculated concentration
+calc_csv <- ""
+
+# dilution factor (aka how much sample was diluted, default is 1:100)
+dilution_factor <- 100
+```
+
+## Check settings
+```{r}
+if (abs_csv == "") {
+  stop("Error! No input file path (abs_csv) is set.")
+} else if (calc_csv == "") {
+  stop("Error! No output file path (calc_csv) is set.")
+} else if (is.na(dilution_factor)) {
+  stop("Error! Need to set a dilution factor")
+}
+```
+
+
+## Load and parse data files
+```{r load data}
+df <- read.csv(abs_csv,
+               stringsAsFactors = FALSE)
+
+blank <- df[df$sample == "BLANK", c("abs")]
+std <- df[startsWith(df$sample, "STD"), c("conc", "abs")]
+std$abs <- std$abs - blank
+
+# uncomment to remove first std
+# std <- std[c(2:dim(std)[1]), ]
+
+smpls <- df[is.na(df$conc) & df$sample != "BLANK", c("sample", "abs")]
+```
+
+
+## Analysis
+```{r analysis}
+# calculate linear model
+lm_model <- lm(std$conc ~ std$abs)
+summary(lm_model)
+
+ggplot(std, aes(abs, conc)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Abs)",
+       y = "Concentration")
+
+if (lm_model$coefficients[1] < 0) {
+  b <- 0
+} else {
+  b <- lm_model$coefficients[1]
+}
+
+smpls$conc <- ((smpls$abs - blank) * lm_model$coefficient[2] + b) * dilution_factor
+smpls$conc <- round(smpls$conc, digits = 2)
+smpls
+
+write.csv(x = smpls, file = calc_csv, quote = FALSE)
+```
+
+
