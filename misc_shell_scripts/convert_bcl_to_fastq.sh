@@ -4,10 +4,10 @@
 # Can customize script to remove additional flags if needed.
 # 
 # Vincent Wu | Betts Lab
-# 2019.07.18 (updated 2020.03.16)
+# 2019.07.18 (updated 2020.03.18)
 
 # Parameters
-# NOTE: MUST CUSTOMIZE TO INDIVDIAUL RUN...
+# NOTE: MUST CUSTOMIZE TO INDIVIDUAL RUN...
 RUN_DIR="/example/dir/bcl/"
 OUT_DIR="/example/dir/fastq/"
 N_THREADS="4"
@@ -29,4 +29,3 @@ bcl2fastq \
     -o ${OUT_DIR} \
 
 echo "Done"
-make_fastq.sh (END)
